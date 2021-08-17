@@ -48,7 +48,7 @@ internal class PixControllerTest(
     }
 
     @Test
-    fun `nao deve cadastrar uma nova chave pix ja existente`(){
+    fun `nao deve cadastrar uma nova chave pix ja existente`() {
 
         val chaveExistente = repository.save(
             ChavePix(
@@ -75,7 +75,7 @@ internal class PixControllerTest(
     }
 
     @Test
-    fun `nao deve cadastrar uma nova chave pix com dados invalidos`(){
+    fun `nao deve cadastrar uma nova chave pix com dados invalidos`() {
 
         val exception = assertThrows<StatusRuntimeException> {
             grpcClient.registraChavePix(
@@ -88,6 +88,43 @@ internal class PixControllerTest(
         }
 
         assertEquals(Status.INVALID_ARGUMENT.code, exception.status.code)
+
+    }
+
+    @Test
+    fun `nao deve cadastrar uma nova chave pix com dados invalidos sem chave`() {
+
+        val exception = assertThrows<StatusRuntimeException> {
+            grpcClient.registraChavePix(
+                ChavePixRequest.newBuilder()
+                    .setIdentificador(UUID.randomUUID().toString())
+                    .setTipoChave(ChavePixRequest.TipoChave.CPF)
+                    .setChave(" ")
+                    .setTipoConta(ChavePixRequest.TipoConta.Conta_Poupanca)
+                    .build()
+            )
+        }
+
+        assertEquals(Status.INVALID_ARGUMENT.code, exception.status.code)
+    }
+
+    @Test
+    fun `deve cadastrar uma chave aleatoria`(){
+
+        val response = grpcClient.registraChavePix(
+                ChavePixRequest.newBuilder()
+                    .setIdentificador("c56dfef4-7901-44fb-84e2-a2cefb157890")
+                    .setTipoChave(ChavePixRequest.TipoChave.CHAVE_ALEATORIA)
+                    .setChave("")
+                    .setTipoConta(ChavePixRequest.TipoConta.Conta_Corrente)
+                    .build()
+                )
+
+        with(response) {
+            println("Id do Pix: $pixId")
+            assertNotNull(pixId)
+            assertTrue(repository.existsById(pixId))
+        }
 
     }
 
