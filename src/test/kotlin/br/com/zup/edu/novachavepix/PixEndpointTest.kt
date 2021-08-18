@@ -17,7 +17,7 @@ import java.util.*
 import javax.inject.Singleton
 
 @MicronautTest(transactional = false)
-internal class PixControllerTest(
+internal class PixEndpointTest(
     val repository: ChavePixRepository,
     val grpcClient: KeyManagerGrpcServiceGrpc.KeyManagerGrpcServiceBlockingStub
 ) {

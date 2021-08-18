@@ -12,7 +12,7 @@ import javax.persistence.PersistenceException
 import javax.validation.ConstraintViolationException
 
 @Singleton
-class PixController(@Inject val chavePixRepository: ChavePixRepository) :
+class PixEndpoint(@Inject val chavePixRepository: ChavePixRepository) :
     KeyManagerGrpcServiceGrpc.KeyManagerGrpcServiceImplBase() {
 
     override fun registraChavePix(request: ChavePixRequest, responseObserver: StreamObserver<ChavePixResponse>) {
@@ -28,21 +28,7 @@ class PixController(@Inject val chavePixRepository: ChavePixRepository) :
             return
         }
 
-        // Se for selecionado chave aleatoria, o request.chave deve ser vazio
-        val chave = if (request.tipoChave.equals(ChavePixRequest.TipoChave.CHAVE_ALEATORIA)) {
-            if (request.chave.isEmpty() || request.chave.isBlank())
-                UUID.randomUUID().toString()
-            else ""
-
-        } else request.chave
-
-
-        val chavePix = ChavePix(
-            request.identificador,
-            request.tipoChave,
-            chave,
-            request.tipoConta
-        )
+        val chavePix = request.toModel()
 
         try {
             chavePixRepository.save(chavePix)
