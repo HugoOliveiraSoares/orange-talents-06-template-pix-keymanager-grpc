@@ -41,6 +41,7 @@ class ChavePixService(
 
     }
 
+    @Transactional
     fun deleta(@Valid idPix: IdPix) {
 
         val possivelChave = chavePixRepository.findById(idPix.pixId)
@@ -62,6 +63,13 @@ class ChavePixService(
                 Status.NOT_FOUND
                     .withDescription("Cliente não encontrado no Itau")
             )
+
+        if (!idPix.identificador.equals(chave.identificadorCliente)){
+            throw StatusRuntimeException(
+                Status.PERMISSION_DENIED
+                    .withDescription("Chave não pertencente a este cliente")
+            )
+        }
 
         chavePixRepository.deleteById(idPix.pixId)
 
