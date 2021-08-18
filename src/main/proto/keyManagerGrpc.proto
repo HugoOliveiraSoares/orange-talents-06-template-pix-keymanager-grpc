@@ -9,6 +9,15 @@ package br.com.zup.edu;
 
 service KeyManagerGrpcService {
   rpc registraChavePix (ChavePixRequest) returns (ChavePixResponse) {}
+
+  rpc deletaChavePix (IdPixRequest) returns (Empty) {}
+}
+
+message Empty {}
+
+message IdPixRequest{
+  int64 pixId = 1;
+  string identificador = 2;
 }
 
 message ChavePixRequest {

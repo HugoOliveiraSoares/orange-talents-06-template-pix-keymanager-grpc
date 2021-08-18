@@ -1,4 +1,4 @@
-package br.com.zup.edu.novachavepix
+package br.com.zup.edu.chavepix
 
 import io.grpc.Status
 import io.grpc.StatusRuntimeException
@@ -30,13 +30,40 @@ class ChavePixService(
 
         val conta = contaResponse.body()?.toModel() ?: throw StatusRuntimeException(
             Status.NOT_FOUND
-                .withDescription("Cliente não encontrado no Itau"))
+                .withDescription("Cliente não encontrado no Itau")
+        )
 
         val chavePix = novaChavePix.toModel(conta)
 
         chavePixRepository.save(chavePix)
 
         return chavePix.pixId!!
+
+    }
+
+    fun deleta(@Valid idPix: IdPix) {
+
+        val possivelChave = chavePixRepository.findById(idPix.pixId)
+
+        if (possivelChave.isEmpty) {
+            throw StatusRuntimeException(
+                Status.NOT_FOUND
+                    .withDescription("Chave Pix não encontrada")
+            )
+        }
+
+        val chave = possivelChave.get()
+
+        val contaResponse = contaClient
+            .buscaContaPorIdETipo(idPix.identificador, chave.tipoConta)
+
+        if (contaResponse.body() == null)
+            throw StatusRuntimeException(
+                Status.NOT_FOUND
+                    .withDescription("Cliente não encontrado no Itau")
+            )
+
+        chavePixRepository.deleteById(idPix.pixId)
 
     }
 

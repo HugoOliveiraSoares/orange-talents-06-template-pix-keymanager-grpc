@@ -1,8 +1,6 @@
-package br.com.zup.edu.novachavepix
+package br.com.zup.edu.chavepix
 
-import br.com.zup.edu.ChavePixRequest
-import br.com.zup.edu.ChavePixResponse
-import br.com.zup.edu.KeyManagerGrpcServiceGrpc
+import br.com.zup.edu.*
 import io.grpc.Status
 import io.grpc.StatusRuntimeException
 import io.grpc.stub.StreamObserver
@@ -30,6 +28,29 @@ class PixEndpoint(@Inject val chavePixService: ChavePixService) :
             responseObserver.onCompleted()
 
         } catch (e: ConstraintViolationException){
+            responseObserver.onError(
+                Status.INVALID_ARGUMENT
+                    .withDescription("Dados invalidos")
+                    .asRuntimeException()
+            )
+        }
+        catch (e: StatusRuntimeException) {
+            responseObserver.onError(e)
+            return
+        }
+
+    }
+
+    override fun deletaChavePix(request: IdPixRequest, responseObserver: StreamObserver<Empty>) {
+
+        try
+        {
+            chavePixService.deleta(request.toModel())
+
+            responseObserver.onNext(Empty.newBuilder().build())
+            responseObserver.onCompleted()
+
+        }catch (e: ConstraintViolationException){
             responseObserver.onError(
                 Status.INVALID_ARGUMENT
                     .withDescription("Dados invalidos")

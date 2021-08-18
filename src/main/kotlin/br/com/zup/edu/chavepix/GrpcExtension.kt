@@ -1,6 +1,7 @@
-package br.com.zup.edu.novachavepix
+package br.com.zup.edu.chavepix
 
 import br.com.zup.edu.ChavePixRequest
+import br.com.zup.edu.IdPixRequest
 import br.com.zup.edu.TipoChave
 import io.micronaut.http.HttpResponse
 import java.lang.IllegalStateException
@@ -22,6 +23,15 @@ fun ChavePixRequest.toModel(): NovaChavePix {
         },
         tipoConta
 
+    )
+
+}
+
+fun IdPixRequest.toModel(): IdPix {
+
+    return IdPix(
+        pixId,
+        identificador
     )
 
 }

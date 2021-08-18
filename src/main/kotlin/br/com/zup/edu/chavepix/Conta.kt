@@ -1,10 +1,11 @@
-package br.com.zup.edu.novachavepix
+package br.com.zup.edu.chavepix
 
 import br.com.zup.edu.TipoConta
 import javax.persistence.*
 
 @Entity
 class Conta(
+    @Enumerated(EnumType.STRING)
     val tipo: TipoConta,
     @OneToOne(cascade = [CascadeType.PERSIST])
     val instituicao: Instituicao,
