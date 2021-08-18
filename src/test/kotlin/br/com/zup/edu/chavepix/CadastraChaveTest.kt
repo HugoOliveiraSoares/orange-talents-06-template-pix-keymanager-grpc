@@ -1,9 +1,6 @@
-package br.com.zup.edu.novachavepix
+package br.com.zup.edu.chavepix
 
-import br.com.zup.edu.ChavePixRequest
-import br.com.zup.edu.KeyManagerGrpcServiceGrpc
-import br.com.zup.edu.TipoChave
-import br.com.zup.edu.TipoConta
+import br.com.zup.edu.*
 import io.grpc.ManagedChannel
 import io.grpc.Status
 import io.grpc.StatusRuntimeException
@@ -18,11 +15,13 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.Mockito
+import java.util.*
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.random.Random
 
 @MicronautTest(transactional = false)
-internal class PixEndpointTest(
+internal class CadastraChaveTest(
     @Inject val repository: ChavePixRepository,
     @Inject val grpcClient: KeyManagerGrpcServiceGrpc.KeyManagerGrpcServiceBlockingStub
 ) {
@@ -51,6 +50,8 @@ internal class PixEndpointTest(
             .thenReturn(HttpResponse.ok(dadosDaContaResponse))
 
     }
+
+    /*** Registrando uma nova chave Pix ***/
 
     @Test
     fun `deve adicionar nova chave pix`() {
@@ -164,6 +165,31 @@ internal class PixEndpointTest(
 
         assertEquals(Status.INVALID_ARGUMENT.code, exception.status.code)
     }
+
+    @Test
+    fun `nao deve cadastar uma nova chave pix com cliente inexistente`(){
+
+        val identificador = UUID.randomUUID().toString()
+
+        Mockito
+            .`when`(contaClient.buscaContaPorIdETipo(identificador, TipoConta.CONTA_CORRENTE))
+            .thenReturn(HttpResponse.notFound())
+
+        val exception = assertThrows<StatusRuntimeException> {
+            grpcClient.registraChavePix(
+                ChavePixRequest.newBuilder()
+                    .setIdentificador(identificador)
+                    .setTipoChave(TipoChave.CPF)
+                    .setChave("02467781054")
+                    .setTipoConta(TipoConta.CONTA_CORRENTE)
+                    .build()
+            )
+        }
+
+        assertEquals("NOT_FOUND: Cliente não encontrado no Itau", exception.message)
+
+    }
+
 
     @Factory
     class Clients {
