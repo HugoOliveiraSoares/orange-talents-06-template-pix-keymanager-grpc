@@ -10,36 +10,59 @@ import io.grpc.StatusRuntimeException
 import io.micronaut.context.annotation.Factory
 import io.micronaut.grpc.annotation.GrpcChannel
 import io.micronaut.grpc.server.GrpcServerChannel
+import io.micronaut.http.HttpResponse
+import io.micronaut.test.annotation.MockBean
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import java.util.*
+import org.mockito.Mockito
+import javax.inject.Inject
 import javax.inject.Singleton
 
 @MicronautTest(transactional = false)
 internal class PixEndpointTest(
-    val repository: ChavePixRepository,
-    val grpcClient: KeyManagerGrpcServiceGrpc.KeyManagerGrpcServiceBlockingStub
+    @Inject val repository: ChavePixRepository,
+    @Inject val grpcClient: KeyManagerGrpcServiceGrpc.KeyManagerGrpcServiceBlockingStub
 ) {
+
+    @field:Inject
+    lateinit var contaClient: ContaClient
+    lateinit var dadosDaContaResponse: DadosDaContaResponse
 
     @BeforeEach
     internal fun setUp() {
         repository.deleteAll()
+        dadosDaContaResponse = DadosDaContaResponse(
+            TipoConta.CONTA_CORRENTE,
+            InstituicaoResponse("ITAÚ UNIBANCO S.A.", "60701190"),
+            "0001",
+            "291900",
+            TitularResponse(
+                "c56dfef4-7901-44fb-84e2-a2cefb157890",
+                "Rafael M C Ponte",
+                "02467781054"
+            )
+        )
+
+        Mockito
+            .`when`(contaClient.buscaContaPorIdETipo("c56dfef4-7901-44fb-84e2-a2cefb157890", TipoConta.CONTA_CORRENTE))
+            .thenReturn(HttpResponse.ok(dadosDaContaResponse))
+
     }
 
     @Test
     fun `deve adicionar nova chave pix`() {
 
-        val response = grpcClient.registraChavePix(
-            ChavePixRequest.newBuilder()
-                .setIdentificador("c56dfef4-7901-44fb-84e2-a2cefb157890")
-                .setTipoChave(TipoChave.CPF)
-                .setChave("70306444682")
-                .setTipoConta(TipoConta.CONTA_CORRENTE)
-                .build()
-        )
+        val chavePixRequest = ChavePixRequest.newBuilder()
+            .setIdentificador("c56dfef4-7901-44fb-84e2-a2cefb157890")
+            .setTipoChave(TipoChave.CPF)
+            .setChave("02467781054")
+            .setTipoConta(TipoConta.CONTA_CORRENTE)
+            .build()
+
+        val response = grpcClient.registraChavePix(chavePixRequest)
 
         with(response) {
             println("Id do Pix: $pixId")
@@ -54,16 +77,23 @@ internal class PixEndpointTest(
 
         val chaveExistente = repository.save(
             ChavePix(
-                UUID.randomUUID().toString(),
+                "c56dfef4-7901-44fb-84e2-a2cefb157890",
                 TipoChave.CPF,
-                "12419962028",
+                "02467781054",
                 TipoConta.CONTA_CORRENTE,
                 Conta(
-                    "",
-                    Instituicao("", ""),
-                    "agencia",
-                    "numero",
-                    Titular("", "", "")
+                    TipoConta.CONTA_CORRENTE,
+                    Instituicao(
+                        "ITAÚ UNIBANCO S.A.",
+                        "60701190"
+                    ),
+                    "0001",
+                    "291900",
+                    Titular(
+                        "c56dfef4-7901-44fb-84e2-a2cefb157890",
+                        "Rafael M C Ponte",
+                        "02467781054"
+                    )
                 )
             )
         )
@@ -101,23 +131,6 @@ internal class PixEndpointTest(
     }
 
     @Test
-    fun `nao deve cadastrar uma nova chave pix com dados invalidos sem chave`() {
-
-        val exception = assertThrows<StatusRuntimeException> {
-            grpcClient.registraChavePix(
-                ChavePixRequest.newBuilder()
-                    .setIdentificador("c56dfef4-7901-44fb-84e2-a2cefb157890")
-                    .setTipoChave(TipoChave.CPF)
-                    .setChave(" ")
-                    .setTipoConta(TipoConta.CONTA_CORRENTE)
-                    .build()
-            )
-        }
-
-        assertEquals(Status.INVALID_ARGUMENT.code, exception.status.code)
-    }
-
-    @Test
     fun `deve cadastrar uma chave aleatoria`() {
 
         val response = grpcClient.registraChavePix(
@@ -136,6 +149,22 @@ internal class PixEndpointTest(
 
     }
 
+    @Test
+    fun `nao deve cadastrar uma nova chave pix aleatoria`() {
+        // O tipo de chave deveria ser CHAVE_ALEATORIA
+        val exception = assertThrows<StatusRuntimeException> {
+            grpcClient.registraChavePix(
+                ChavePixRequest.newBuilder()
+                    .setIdentificador("c56dfef4-7901-44fb-84e2-a2cefb157890")
+                    .setTipoChave(TipoChave.CPF)
+                    .setTipoConta(TipoConta.CONTA_CORRENTE)
+                    .build()
+            )
+        }
+
+        assertEquals(Status.INVALID_ARGUMENT.code, exception.status.code)
+    }
+
     @Factory
     class Clients {
         @Singleton
@@ -143,6 +172,11 @@ internal class PixEndpointTest(
             return KeyManagerGrpcServiceGrpc.newBlockingStub(channel)
         }
 
+    }
+
+    @MockBean(ContaClient::class)
+    fun contaMock(): ContaClient {
+        return Mockito.mock(ContaClient::class.java)
     }
 
 }
