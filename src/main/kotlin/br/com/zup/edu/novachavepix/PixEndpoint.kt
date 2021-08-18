@@ -3,54 +3,43 @@ package br.com.zup.edu.novachavepix
 import br.com.zup.edu.ChavePixRequest
 import br.com.zup.edu.ChavePixResponse
 import br.com.zup.edu.KeyManagerGrpcServiceGrpc
+import io.grpc.Status
+import io.grpc.StatusRuntimeException
 import io.grpc.stub.StreamObserver
 import javax.inject.Inject
 import javax.inject.Singleton
-import io.grpc.Status
-import java.util.*
-import javax.persistence.PersistenceException
 import javax.validation.ConstraintViolationException
 
 @Singleton
-class PixEndpoint(@Inject val chavePixRepository: ChavePixRepository) :
+class PixEndpoint(@Inject val chavePixService: ChavePixService) :
     KeyManagerGrpcServiceGrpc.KeyManagerGrpcServiceImplBase() {
 
     override fun registraChavePix(request: ChavePixRequest, responseObserver: StreamObserver<ChavePixResponse>) {
 
-        if (chavePixRepository.existsByChave(request.chave)) {
+        try {
 
-            responseObserver.onError(
-                Status.ALREADY_EXISTS
-                    .withDescription("Chave Pix já cadastrada")
-                    .asRuntimeException()
+            val novaChavePix = request.toModel()
+            val pixId = chavePixService.registra(novaChavePix)
+
+            responseObserver.onNext(
+                ChavePixResponse.newBuilder()
+                    .setPixId(pixId)
+                    .build()
             )
 
-            return
-        }
+            responseObserver.onCompleted()
 
-        val chavePix = request.toModel()
-
-        try {
-            chavePixRepository.save(chavePix)
-        } catch (e: ConstraintViolationException) {
-
+        } catch (e: ConstraintViolationException){
             responseObserver.onError(
                 Status.INVALID_ARGUMENT
-                    .withDescription("Dados de entrada inválidos")
+                    .withDescription("Dados invalidos")
                     .asRuntimeException()
             )
-
-            return
-
         }
-
-        responseObserver.onNext(
-            ChavePixResponse.newBuilder()
-                .setPixId(chavePix.pixId!!)
-                .build()
-        )
-
-        responseObserver.onCompleted()
+        catch (e: StatusRuntimeException) {
+            responseObserver.onError(e)
+            return
+        }
 
     }
 

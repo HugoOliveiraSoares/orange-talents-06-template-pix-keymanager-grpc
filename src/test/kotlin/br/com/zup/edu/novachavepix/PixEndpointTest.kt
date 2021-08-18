@@ -2,6 +2,8 @@ package br.com.zup.edu.novachavepix
 
 import br.com.zup.edu.ChavePixRequest
 import br.com.zup.edu.KeyManagerGrpcServiceGrpc
+import br.com.zup.edu.TipoChave
+import br.com.zup.edu.TipoConta
 import io.grpc.ManagedChannel
 import io.grpc.Status
 import io.grpc.StatusRuntimeException
@@ -33,9 +35,9 @@ internal class PixEndpointTest(
         val response = grpcClient.registraChavePix(
             ChavePixRequest.newBuilder()
                 .setIdentificador("c56dfef4-7901-44fb-84e2-a2cefb157890")
-                .setTipoChave(ChavePixRequest.TipoChave.CPF)
+                .setTipoChave(TipoChave.CPF)
                 .setChave("70306444682")
-                .setTipoConta(ChavePixRequest.TipoConta.Conta_Corrente)
+                .setTipoConta(TipoConta.CONTA_CORRENTE)
                 .build()
         )
 
@@ -53,9 +55,16 @@ internal class PixEndpointTest(
         val chaveExistente = repository.save(
             ChavePix(
                 UUID.randomUUID().toString(),
-                ChavePixRequest.TipoChave.CPF,
+                TipoChave.CPF,
                 "12419962028",
-                ChavePixRequest.TipoConta.Conta_Corrente
+                TipoConta.CONTA_CORRENTE,
+                Conta(
+                    "",
+                    Instituicao("", ""),
+                    "agencia",
+                    "numero",
+                    Titular("", "", "")
+                )
             )
         )
 
@@ -80,9 +89,9 @@ internal class PixEndpointTest(
         val exception = assertThrows<StatusRuntimeException> {
             grpcClient.registraChavePix(
                 ChavePixRequest.newBuilder()
-                    .setTipoChave(ChavePixRequest.TipoChave.CPF)
+                    .setTipoChave(TipoChave.CPF)
                     .setChave(" ")
-                    .setTipoConta(ChavePixRequest.TipoConta.Conta_Corrente)
+                    .setTipoConta(TipoConta.CONTA_CORRENTE)
                     .build()
             )
         }
@@ -97,10 +106,10 @@ internal class PixEndpointTest(
         val exception = assertThrows<StatusRuntimeException> {
             grpcClient.registraChavePix(
                 ChavePixRequest.newBuilder()
-                    .setIdentificador(UUID.randomUUID().toString())
-                    .setTipoChave(ChavePixRequest.TipoChave.CPF)
+                    .setIdentificador("c56dfef4-7901-44fb-84e2-a2cefb157890")
+                    .setTipoChave(TipoChave.CPF)
                     .setChave(" ")
-                    .setTipoConta(ChavePixRequest.TipoConta.Conta_Poupanca)
+                    .setTipoConta(TipoConta.CONTA_CORRENTE)
                     .build()
             )
         }
@@ -109,16 +118,15 @@ internal class PixEndpointTest(
     }
 
     @Test
-    fun `deve cadastrar uma chave aleatoria`(){
+    fun `deve cadastrar uma chave aleatoria`() {
 
         val response = grpcClient.registraChavePix(
-                ChavePixRequest.newBuilder()
-                    .setIdentificador("c56dfef4-7901-44fb-84e2-a2cefb157890")
-                    .setTipoChave(ChavePixRequest.TipoChave.CHAVE_ALEATORIA)
-                    .setChave("")
-                    .setTipoConta(ChavePixRequest.TipoConta.Conta_Corrente)
-                    .build()
-                )
+            ChavePixRequest.newBuilder()
+                .setIdentificador("c56dfef4-7901-44fb-84e2-a2cefb157890")
+                .setTipoChave(TipoChave.CHAVE_ALEATORIA)
+                .setTipoConta(TipoConta.CONTA_CORRENTE)
+                .build()
+        )
 
         with(response) {
             println("Id do Pix: $pixId")

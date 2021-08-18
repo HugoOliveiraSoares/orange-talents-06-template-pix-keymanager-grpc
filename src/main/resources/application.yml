@@ -8,3 +8,11 @@ datasources:
     dialect: POSTGRES
 
 jpa.default.properties.hibernate.hbm2ddl.auto: update
+
+grpc:
+  server:
+    port: ${SERVER_PORT:50051}
+
+erpItau:
+  contas:
+    url: "http://localhost:9091/api/v1/clientes"

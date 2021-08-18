@@ -13,22 +13,22 @@ service KeyManagerGrpcService {
 
 message ChavePixRequest {
 
-  enum TipoChave {
-    CPF = 0;
-    TELEFONE = 1;
-    EMAIL = 2;
-    CHAVE_ALEATORIA = 3;
-  }
-
-  enum TipoConta {
-      Conta_Corrente = 0;
-      Conta_Poupanca = 1;
-  }
-
   string identificador = 1;
   TipoChave tipoChave = 2;
   string chave = 3;
   TipoConta tipoConta = 4;
+}
+
+enum TipoChave {
+  CPF = 0;
+  TELEFONE = 1;
+  EMAIL = 2;
+  CHAVE_ALEATORIA = 3;
+}
+
+enum TipoConta {
+  CONTA_CORRENTE = 0;
+  CONTA_POUPANCA = 1;
 }
 
 message ChavePixResponse {
