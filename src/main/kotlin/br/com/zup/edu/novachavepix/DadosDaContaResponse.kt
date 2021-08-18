@@ -1,7 +1,9 @@
 package br.com.zup.edu.novachavepix
 
+import br.com.zup.edu.TipoConta
+
 data class DadosDaContaResponse(
-    val tipo: String,
+    val tipo: TipoConta,
     val instituicao: InstituicaoResponse,
     val agencia: String,
     val numero: String,
