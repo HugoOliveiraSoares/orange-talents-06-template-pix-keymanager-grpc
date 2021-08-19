@@ -1,4 +1,4 @@
-package br.com.zup.edu.chavepix
+package br.com.zup.edu.model
 
 import br.com.zup.edu.TipoChave
 import br.com.zup.edu.TipoConta

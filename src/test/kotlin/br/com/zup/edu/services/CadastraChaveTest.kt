@@ -1,6 +1,15 @@
-package br.com.zup.edu.chavepix
+package br.com.zup.edu.services
 
 import br.com.zup.edu.*
+import br.com.zup.edu.chavepix.DadosDaContaResponse
+import br.com.zup.edu.chavepix.InstituicaoResponse
+import br.com.zup.edu.chavepix.TitularResponse
+import br.com.zup.edu.clients.ContaClient
+import br.com.zup.edu.model.ChavePix
+import br.com.zup.edu.model.Conta
+import br.com.zup.edu.model.Instituicao
+import br.com.zup.edu.model.Titular
+import br.com.zup.edu.repository.ChavePixRepository
 import io.grpc.ManagedChannel
 import io.grpc.Status
 import io.grpc.StatusRuntimeException
@@ -18,7 +27,6 @@ import org.mockito.Mockito
 import java.util.*
 import javax.inject.Inject
 import javax.inject.Singleton
-import kotlin.random.Random
 
 @MicronautTest(transactional = false)
 internal class CadastraChaveTest(

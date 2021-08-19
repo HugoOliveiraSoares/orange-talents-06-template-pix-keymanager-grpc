@@ -1,4 +1,4 @@
-package br.com.zup.edu.chavepix
+package br.com.zup.edu.endpoint.dto
 
 import io.micronaut.core.annotation.Introspected
 import javax.validation.constraints.NotBlank

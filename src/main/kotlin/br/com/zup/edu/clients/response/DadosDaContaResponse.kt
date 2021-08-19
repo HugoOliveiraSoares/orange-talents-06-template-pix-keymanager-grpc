@@ -1,6 +1,9 @@
 package br.com.zup.edu.chavepix
 
 import br.com.zup.edu.TipoConta
+import br.com.zup.edu.model.Conta
+import br.com.zup.edu.model.Instituicao
+import br.com.zup.edu.model.Titular
 
 data class DadosDaContaResponse(
     val tipo: TipoConta,

@@ -1,7 +1,10 @@
-package br.com.zup.edu.chavepix
+package br.com.zup.edu.endpoint.dto
 
 import br.com.zup.edu.TipoChave
 import br.com.zup.edu.TipoConta
+import br.com.zup.edu.chavepix.Pix
+import br.com.zup.edu.model.ChavePix
+import br.com.zup.edu.model.Conta
 import io.micronaut.core.annotation.Introspected
 import javax.validation.constraints.NotBlank
 import javax.validation.constraints.NotEmpty

@@ -1,6 +1,8 @@
-package br.com.zup.edu.chavepix
+package br.com.zup.edu.endpoint
 
 import br.com.zup.edu.*
+import br.com.zup.edu.services.ChavePixService
+import br.com.zup.edu.chavepix.toModel
 import io.grpc.Status
 import io.grpc.StatusRuntimeException
 import io.grpc.stub.StreamObserver

@@ -1,5 +1,9 @@
-package br.com.zup.edu.chavepix
+package br.com.zup.edu.services
 
+import br.com.zup.edu.clients.ContaClient
+import br.com.zup.edu.endpoint.dto.IdPix
+import br.com.zup.edu.endpoint.dto.NovaChavePix
+import br.com.zup.edu.repository.ChavePixRepository
 import io.grpc.Status
 import io.grpc.StatusRuntimeException
 import io.micronaut.validation.Validated
