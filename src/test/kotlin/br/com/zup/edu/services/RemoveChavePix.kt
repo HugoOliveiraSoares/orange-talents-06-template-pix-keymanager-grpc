@@ -8,7 +8,9 @@ import br.com.zup.edu.clients.BCBClient
 import br.com.zup.edu.clients.ContaClient
 import br.com.zup.edu.clients.request.BankAccountRequest
 import br.com.zup.edu.clients.request.CreatePixKeyRequest
+import br.com.zup.edu.clients.request.DeletePixKeyRequest
 import br.com.zup.edu.clients.request.OwnerRequest
+import br.com.zup.edu.clients.response.DeletePixKeyResponse
 import br.com.zup.edu.enums.AccountType
 import br.com.zup.edu.enums.KeyType
 import br.com.zup.edu.enums.TypePerson
@@ -31,6 +33,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.Mockito
+import java.time.LocalDateTime
 import java.util.*
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -93,6 +96,10 @@ internal class RemoveChavePix(
     @Test
     fun `deve deletar uma chave pix`() {
 
+        Mockito
+            .`when`(bcbClient.deletaChavePix(deletePixKeyRequest(), deletePixKeyRequest().key))
+            .thenReturn(HttpResponse.ok(deletePixKeyResponse()))
+
         // faz a requisição para deletar a chave
         val respose = grpcClient.deletaChavePix(
             IdPixRequest.newBuilder()
@@ -110,6 +117,10 @@ internal class RemoveChavePix(
 
     @Test
     fun `deve retornar NOT_FOUND para uma chave inexistente`() {
+
+        Mockito
+            .`when`(bcbClient.deletaChavePix(deletePixKeyRequest(), deletePixKeyRequest().key))
+            .thenReturn(HttpResponse.notFound(deletePixKeyResponse()))
 
         val exception = assertThrows<StatusRuntimeException> {
             grpcClient.deletaChavePix(
@@ -210,6 +221,10 @@ internal class RemoveChavePix(
     @Test
     fun `deve retornar UNKNOWN quando der erro no sistema BCB e nao deve remover do banco` () {
 
+        Mockito
+            .`when`(bcbClient.deletaChavePix(deletePixKeyRequest(), deletePixKeyRequest().key))
+            .thenReturn(HttpResponse.notFound(deletePixKeyResponse()))
+
         val createPix = CreatePixKeyRequest(
             KeyType.CPF,
             "02467781054",
@@ -231,20 +246,33 @@ internal class RemoveChavePix(
             .thenReturn(HttpResponse.badRequest())
 
         val exception = assertThrows<StatusRuntimeException> {
-            grpcClient.registraChavePix(
-                ChavePixRequest.newBuilder()
-                    .setIdentificador("c56dfef4-7901-44fb-84e2-a2cefb157890")
-                    .setTipoChave(TipoChave.CPF)
-                    .setChave("02467781054")
-                    .setTipoConta(TipoConta.CONTA_CORRENTE)
+            grpcClient.deletaChavePix(
+                IdPixRequest.newBuilder()
+                    .setPixId(chaveExistente.pixId!!)
+                    .setIdentificador(chaveExistente.identificadorCliente)
                     .build()
             )
         }
 
         assertEquals(Status.UNKNOWN.code, exception.status.code)
-        assertEquals("UNKNOWN: Erro ao cadastar no BCB", exception.message)
+        assertEquals("UNKNOWN: Erro ao deletar no BCB", exception.message)
         assertTrue(repository.existsByChave("02467781054"))
 
+    }
+
+    fun deletePixKeyRequest(): DeletePixKeyRequest {
+        return DeletePixKeyRequest(
+            "02467781054",
+            "60701190"
+        )
+    }
+
+    fun deletePixKeyResponse(): DeletePixKeyResponse {
+        return DeletePixKeyResponse (
+            "02467781054",
+            "60701190",
+            LocalDateTime.now()
+        )
     }
 
     @Factory

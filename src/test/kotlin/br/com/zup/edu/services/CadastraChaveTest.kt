@@ -195,14 +195,11 @@ internal class CadastraChaveTest(
     @Test
     fun `deve cadastrar uma chave aleatoria`() {
 
-        Mockito
-            .`when`(bcbClient.cadastraChavePix(createPixKeyRequest))
-            .thenReturn(HttpResponse.created(createPixKeyResponse))
-
         val response = grpcClient.registraChavePix(
             ChavePixRequest.newBuilder()
                 .setIdentificador("c56dfef4-7901-44fb-84e2-a2cefb157890")
                 .setTipoChave(TipoChave.CHAVE_ALEATORIA)
+                .setChave("")
                 .setTipoConta(TipoConta.CONTA_CORRENTE)
                 .build()
         )

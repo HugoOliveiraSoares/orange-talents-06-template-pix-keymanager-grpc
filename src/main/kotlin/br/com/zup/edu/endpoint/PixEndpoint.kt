@@ -146,7 +146,7 @@ class PixEndpoint(
         if (response.status != HttpStatus.OK)
             throw StatusRuntimeException(
                 Status.UNKNOWN
-                    .withDescription("Erro ao cadastar no BCB")
+                    .withDescription("Erro ao deletar no BCB")
             )
 
         chavePixRepository.deleteById(idPix.pixId)
