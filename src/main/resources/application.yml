@@ -19,4 +19,4 @@ erpItau:
 
 bcb:
   keys:
-    url: "http://localhost:8082/api/v1/pix/keys"
+    url: "http://localhost:8082/api/v1/pix/keys/"
