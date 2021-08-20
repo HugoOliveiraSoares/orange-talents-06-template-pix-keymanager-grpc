@@ -54,7 +54,7 @@ class PixValidator : ConstraintValidator<Pix, NovaChavePix> {
 
     // Se for selecionado chave aleatoria, o request.chave deve ser vazio
     fun isUUID(chave: String, tipoChave: TipoChave): Boolean {
-        return tipoChave == TipoChave.CHAVE_ALEATORIA
+        return (chave.isBlank() || chave.isEmpty()) && tipoChave == TipoChave.CHAVE_ALEATORIA
     }
 
 }
