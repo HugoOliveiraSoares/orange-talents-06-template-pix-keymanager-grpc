@@ -4,7 +4,14 @@ import br.com.zup.edu.*
 import br.com.zup.edu.chavepix.DadosDaContaResponse
 import br.com.zup.edu.chavepix.InstituicaoResponse
 import br.com.zup.edu.chavepix.TitularResponse
+import br.com.zup.edu.clients.BCBClient
 import br.com.zup.edu.clients.ContaClient
+import br.com.zup.edu.clients.request.BankAccountRequest
+import br.com.zup.edu.clients.request.CreatePixKeyRequest
+import br.com.zup.edu.clients.request.OwnerRequest
+import br.com.zup.edu.enums.AccountType
+import br.com.zup.edu.enums.KeyType
+import br.com.zup.edu.enums.TypePerson
 import br.com.zup.edu.model.ChavePix
 import br.com.zup.edu.model.Conta
 import br.com.zup.edu.model.Instituicao
@@ -19,7 +26,7 @@ import io.micronaut.grpc.server.GrpcServerChannel
 import io.micronaut.http.HttpResponse
 import io.micronaut.test.annotation.MockBean
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest
-import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -31,7 +38,8 @@ import javax.inject.Singleton
 @MicronautTest(transactional = false)
 internal class RemoveChavePix(
     @Inject val repository: ChavePixRepository,
-    @Inject val grpcClient: KeyManagerGrpcServiceGrpc.KeyManagerGrpcServiceBlockingStub
+    @Inject val grpcClient: KeyManagerGrpcServiceGrpc.KeyManagerGrpcServiceBlockingStub,
+    @Inject val bcbClient: BCBClient
 ) {
     @field:Inject
     lateinit var contaClient: ContaClient
@@ -94,8 +102,8 @@ internal class RemoveChavePix(
         )
 
         // Validação
-        Assertions.assertTrue(respose.equals(Empty.newBuilder().build()))
-        Assertions.assertFalse(repository.existsById(chaveExistente.pixId!!))
+        assertTrue(respose.equals(Empty.newBuilder().build()))
+        assertFalse(repository.existsById(chaveExistente.pixId!!))
 
 
     }
@@ -112,8 +120,8 @@ internal class RemoveChavePix(
             )
         }
 
-        Assertions.assertEquals(Status.NOT_FOUND.code, exception.status.code)
-        Assertions.assertEquals("NOT_FOUND: Chave Pix não encontrada", exception.message)
+        assertEquals(Status.NOT_FOUND.code, exception.status.code)
+        assertEquals("NOT_FOUND: Chave Pix não encontrada", exception.message)
 
     }
 
@@ -139,9 +147,9 @@ internal class RemoveChavePix(
         }
 
         // validação
-        Assertions.assertEquals(Status.NOT_FOUND.code, exception.status.code)
-        Assertions.assertTrue(repository.existsById(chaveExistente.pixId!!)) // verifica se a chave ainda existe no banco
-        Assertions.assertEquals("NOT_FOUND: Cliente não encontrado no Itau", exception.message)
+        assertEquals(Status.NOT_FOUND.code, exception.status.code)
+        assertTrue(repository.existsById(chaveExistente.pixId!!)) // verifica se a chave ainda existe no banco
+        assertEquals("NOT_FOUND: Cliente não encontrado no Itau", exception.message)
 
     }
 
@@ -158,7 +166,7 @@ internal class RemoveChavePix(
         }
 
         // validação
-        Assertions.assertEquals(Status.INVALID_ARGUMENT.code, exception.status.code)
+        assertEquals(Status.INVALID_ARGUMENT.code, exception.status.code)
 
     }
 
@@ -194,8 +202,48 @@ internal class RemoveChavePix(
         }
 
         // validação
-        Assertions.assertEquals(Status.PERMISSION_DENIED.code, exception.status.code)
-        Assertions.assertTrue(repository.existsById(chaveExistente.pixId!!)) // verifica se a chave ainda existe no banco
+        assertEquals(Status.PERMISSION_DENIED.code, exception.status.code)
+        assertTrue(repository.existsById(chaveExistente.pixId!!)) // verifica se a chave ainda existe no banco
+
+    }
+
+    @Test
+    fun `deve retornar UNKNOWN quando der erro no sistema BCB e nao deve remover do banco` () {
+
+        val createPix = CreatePixKeyRequest(
+            KeyType.CPF,
+            "02467781054",
+            BankAccountRequest(
+                "60701190",
+                "0001",
+                "791903",
+                AccountType.CACC
+            ),
+            OwnerRequest(
+                TypePerson.NATURAL_PERSON,
+                "Hugo",
+                "84859958055"
+            )
+        )
+
+        Mockito
+            .`when`(bcbClient.cadastraChavePix(createPix))
+            .thenReturn(HttpResponse.badRequest())
+
+        val exception = assertThrows<StatusRuntimeException> {
+            grpcClient.registraChavePix(
+                ChavePixRequest.newBuilder()
+                    .setIdentificador("c56dfef4-7901-44fb-84e2-a2cefb157890")
+                    .setTipoChave(TipoChave.CPF)
+                    .setChave("02467781054")
+                    .setTipoConta(TipoConta.CONTA_CORRENTE)
+                    .build()
+            )
+        }
+
+        assertEquals(Status.UNKNOWN.code, exception.status.code)
+        assertEquals("UNKNOWN: Erro ao cadastar no BCB", exception.message)
+        assertTrue(repository.existsByChave("02467781054"))
 
     }
 
@@ -213,4 +261,8 @@ internal class RemoveChavePix(
         return Mockito.mock(ContaClient::class.java)
     }
 
+    @MockBean(BCBClient::class)
+    fun bcbMock(): BCBClient {
+        return Mockito.mock(BCBClient::class.java)
+    }
 }
