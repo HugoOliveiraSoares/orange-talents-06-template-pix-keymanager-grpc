@@ -2,6 +2,9 @@ package br.com.zup.edu.model
 
 import br.com.zup.edu.TipoChave
 import br.com.zup.edu.TipoConta
+import br.com.zup.edu.clients.request.CreatePixKeyRequest
+import br.com.zup.edu.clients.request.DeletePixKeyRequest
+import br.com.zup.edu.enums.KeyType
 import javax.persistence.*
 import javax.validation.constraints.NotBlank
 import javax.validation.constraints.NotEmpty
@@ -20,10 +23,9 @@ class ChavePix(
     @Enumerated(EnumType.STRING)
     val tipoChave: TipoChave,
 
-    @field:NotBlank
     @field:Size(max = 77)
     @Column(nullable = false, unique = true)
-    val chave: String,
+    var chave: String,
 
     @field:NotNull
     @Column(nullable = false)
@@ -39,5 +41,27 @@ class ChavePix(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val pixId: Long? = null
+
+    fun toRequest(): CreatePixKeyRequest{
+        return CreatePixKeyRequest(
+            KeyType.values()[tipoChave.ordinal],
+            chave,
+            conta.toRequest(),
+            conta.titular.toRequest()
+        )
+    }
+
+    fun toDeletePixKeyRequest(): DeletePixKeyRequest{
+
+        return DeletePixKeyRequest(
+            chave,
+            conta.instituicao.ispb
+        )
+
+    }
+
+    fun utualizaChave(key: String) {
+        chave = key
+    }
 
 }

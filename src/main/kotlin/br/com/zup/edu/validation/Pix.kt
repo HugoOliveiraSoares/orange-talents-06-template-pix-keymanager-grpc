@@ -1,4 +1,4 @@
-package br.com.zup.edu.chavepix
+package br.com.zup.edu.validation
 
 import br.com.zup.edu.TipoChave
 import br.com.zup.edu.endpoint.dto.NovaChavePix
@@ -52,12 +52,9 @@ class PixValidator : ConstraintValidator<Pix, NovaChavePix> {
             ) && tipoChave == TipoChave.EMAIL
     }
 
+    // Se for selecionado chave aleatoria, o request.chave deve ser vazio
     fun isUUID(chave: String, tipoChave: TipoChave): Boolean {
-        return chave
-            .matches(
-                "^[0-9a-fA-F]{8}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{12}\$"
-                    .toRegex()
-            ) && tipoChave == TipoChave.CHAVE_ALEATORIA
+        return tipoChave == TipoChave.CHAVE_ALEATORIA
     }
 
 }

@@ -2,7 +2,7 @@ package br.com.zup.edu.endpoint.dto
 
 import br.com.zup.edu.TipoChave
 import br.com.zup.edu.TipoConta
-import br.com.zup.edu.chavepix.Pix
+import br.com.zup.edu.validation.Pix
 import br.com.zup.edu.model.ChavePix
 import br.com.zup.edu.model.Conta
 import io.micronaut.core.annotation.Introspected
@@ -22,7 +22,7 @@ class NovaChavePix(
     val tipoChave: TipoChave,
 
     @field:Size(max = 77)
-    val chave: String,
+    var chave: String,
 
     @field:NotNull
     val tipoConta: TipoConta
@@ -39,6 +39,5 @@ class NovaChavePix(
         )
 
     }
-
 
 }
