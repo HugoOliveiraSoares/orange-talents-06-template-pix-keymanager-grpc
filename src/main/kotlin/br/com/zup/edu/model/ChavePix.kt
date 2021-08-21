@@ -1,10 +1,14 @@
 package br.com.zup.edu.model
 
+import br.com.zup.edu.ChavePixDetailResponse
 import br.com.zup.edu.TipoChave
 import br.com.zup.edu.TipoConta
 import br.com.zup.edu.clients.request.CreatePixKeyRequest
 import br.com.zup.edu.clients.request.DeletePixKeyRequest
 import br.com.zup.edu.enums.KeyType
+import com.google.protobuf.Timestamp
+import java.time.LocalDateTime
+import java.time.ZoneId
 import javax.persistence.*
 import javax.validation.constraints.NotBlank
 import javax.validation.constraints.NotEmpty
@@ -62,6 +66,30 @@ class ChavePix(
 
     fun utualizaChave(key: String) {
         chave = key
+    }
+
+    fun toResponse(createdAt: LocalDateTime?): ChavePixDetailResponse {
+
+        val instant = createdAt?.atZone(ZoneId.of("UTC"))?.toInstant()!!
+
+        return ChavePixDetailResponse.newBuilder()
+            .setPixId(pixId!!)
+            .setIdentificador(identificadorCliente)
+            .setTipoChave(tipoChave)
+            .setChave(chave)
+            .setNome(conta.titular.nome)
+            .setCpf(conta.titular.cpf)
+            .setNomeInstituicao(conta.instituicao.nome)
+            .setAgencia(conta.agencia)
+            .setTipoConta(tipoConta)
+            .setCriadoEm(
+                Timestamp.newBuilder()
+                    .setSeconds(instant.epochSecond)
+                    .setNanos(instant.nano)
+                    .build()
+            )
+            .build()
+
     }
 
 }

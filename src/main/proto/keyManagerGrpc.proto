@@ -4,6 +4,7 @@ option java_multiple_files = true;
 option java_package = "br.com.zup.edu";
 option java_outer_classname = "KeyManagerGrpc";
 option objc_class_prefix = "HLW";
+import "google/protobuf/timestamp.proto";
 
 package br.com.zup.edu;
 
@@ -11,6 +12,30 @@ service KeyManagerGrpcService {
   rpc registraChavePix (ChavePixRequest) returns (ChavePixResponse) {}
 
   rpc deletaChavePix (IdPixRequest) returns (Empty) {}
+
+  rpc consultaChavePixKeyManager (IdPixRequest) returns (ChavePixDetailResponse) {}
+
+  rpc consultaChavePix (PixRequest) returns (ChavePixDetailResponse) {}
+}
+
+message PixRequest {
+  string chave = 1;
+}
+
+message ChavePixDetailResponse {
+
+  int64 pixId = 1;
+  string identificador = 2;
+  TipoChave tipoChave = 3;
+  string chave = 4;
+  string nome = 5;
+  string cpf = 6;
+  string nomeInstituicao = 7;
+  string agencia = 8;
+  string numeroDaConta = 9;
+  TipoConta tipoConta = 10;
+  google.protobuf.Timestamp criadoEm = 11;
+
 }
 
 message Empty {}

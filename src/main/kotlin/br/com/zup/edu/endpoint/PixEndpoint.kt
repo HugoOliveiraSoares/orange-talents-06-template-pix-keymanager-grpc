@@ -3,6 +3,7 @@ package br.com.zup.edu.endpoint
 import br.com.zup.edu.*
 import br.com.zup.edu.clients.BCBClient
 import br.com.zup.edu.clients.ContaClient
+import br.com.zup.edu.endpoint.dto.Chave
 import br.com.zup.edu.endpoint.dto.IdPix
 import br.com.zup.edu.endpoint.dto.NovaChavePix
 import br.com.zup.edu.extension.toModel
@@ -44,8 +45,10 @@ class PixEndpoint(
                         .withDescription("Dados invalidos")
                 )
             )
+            return
         } catch (e: StatusRuntimeException) {
             responseObserver.onError(e)
+            return
         }
 
     }
@@ -68,6 +71,102 @@ class PixEndpoint(
             responseObserver.onError(e)
             return
         }
+
+    }
+
+    override fun consultaChavePixKeyManager(request: IdPixRequest, responseObserver: StreamObserver<ChavePixDetailResponse>) {
+
+        try {
+            val consultaDados = consultaDadosKeyManager(request.toModel())
+
+            responseObserver.onNext(consultaDados)
+            responseObserver.onCompleted()
+
+        } catch (e: StatusRuntimeException) {
+            responseObserver.onError(e)
+            return
+        } catch (e: ConstraintViolationException) {
+            responseObserver.onError(
+                Status.INVALID_ARGUMENT
+                    .withDescription("Dados invalidos ${e.message}")
+                    .asRuntimeException()
+            )
+        }
+
+    }
+
+    override fun consultaChavePix(request: PixRequest, responseObserver: StreamObserver<ChavePixDetailResponse>) {
+
+        try {
+            val consultaDados = consultaDados(request.toModel())
+
+            responseObserver.onNext(consultaDados)
+            responseObserver.onCompleted()
+
+        }catch (e: StatusRuntimeException){
+            responseObserver.onError(e)
+        } catch (e: ConstraintViolationException){
+            responseObserver.onError(
+                Status.INVALID_ARGUMENT
+                    .withDescription("Dados invalidos ${e.message}")
+                    .asRuntimeException()
+            )
+        }
+
+    }
+
+    fun consultaDadosKeyManager(@Valid idPix: IdPix): ChavePixDetailResponse {
+
+        val possivelChavePix = chavePixRepository.findById(idPix.pixId)
+        if (possivelChavePix.isEmpty) {
+            throw StatusRuntimeException(
+                Status.NOT_FOUND
+                    .withDescription("Chave não encontrada")
+            )
+        }
+
+        val chavePix = possivelChavePix.get()
+        if (chavePix.identificadorCliente != idPix.identificador) {
+            throw StatusRuntimeException(
+                Status.PERMISSION_DENIED
+                    .withDescription("Chave não pertencente a este cliente")
+            )
+        }
+
+        val httpResponse = bcbClient.buscaChavePix(chavePix.chave)
+        if (httpResponse.status != HttpStatus.OK) {
+            throw StatusRuntimeException(
+                Status.NOT_FOUND
+                    .withDescription("Chave não encontrada no sistema BCB")
+            )
+        }
+
+        return chavePix.toResponse(httpResponse.body()?.createdAt)
+
+    }
+
+    fun consultaDados(@Valid chave: Chave): ChavePixDetailResponse {
+
+        val possivelChavePix = chavePixRepository.findByChave(chave.chave)
+        // Se não for encontrado na nossa base de dados pesquisa no sistema Pix do BCB
+        if (possivelChavePix.isEmpty) {
+            return bcbClient.buscaChavePix(chave.chave).body()?.toChavePixDetailResponse() ?: throw StatusRuntimeException(
+                Status.UNKNOWN
+                    .withDescription("Erro ao buscar no sistema Pix do BCB")
+            )
+        }
+
+        val chavePix = possivelChavePix.get()
+
+        val httpResponse = bcbClient.buscaChavePix(chavePix.chave)
+        if (httpResponse.status != HttpStatus.OK) {
+            throw StatusRuntimeException(
+                Status.NOT_FOUND
+                    .withDescription("Chave não encontrada no sistema BCB")
+            )
+        }
+
+        return chavePix.toResponse(httpResponse.body()?.createdAt)
 
     }
 

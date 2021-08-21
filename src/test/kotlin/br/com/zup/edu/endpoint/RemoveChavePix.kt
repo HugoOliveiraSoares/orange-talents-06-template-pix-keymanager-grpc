@@ -1,4 +1,4 @@
-package br.com.zup.edu.services
+package br.com.zup.edu.endpoint
 
 import br.com.zup.edu.*
 import br.com.zup.edu.chavepix.DadosDaContaResponse

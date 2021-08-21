@@ -2,12 +2,10 @@ package br.com.zup.edu.extension
 
 import br.com.zup.edu.ChavePixRequest
 import br.com.zup.edu.IdPixRequest
-import br.com.zup.edu.TipoChave
-import br.com.zup.edu.clients.BCBClient
-import br.com.zup.edu.clients.request.BankAccountRequest
-import br.com.zup.edu.clients.request.CreatePixKeyRequest
+import br.com.zup.edu.PixRequest
 import br.com.zup.edu.endpoint.dto.IdPix
 import br.com.zup.edu.endpoint.dto.NovaChavePix
+import br.com.zup.edu.endpoint.dto.Chave
 
 fun ChavePixRequest.toModel(): NovaChavePix {
 
@@ -26,4 +24,9 @@ fun IdPixRequest.toModel(): IdPix {
         identificador
     )
 
+}
+
+fun PixRequest.toModel(): Chave {
+
+    return Chave(chave)
 }
