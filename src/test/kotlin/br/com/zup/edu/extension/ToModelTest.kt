@@ -21,7 +21,7 @@ import org.junit.jupiter.api.Test
 internal class ToModelTest{
 
     @Test
-    internal fun `deve retornar uma NovaChavePix`() {
+    fun `deve retornar uma NovaChavePix`() {
 
         val chavePixRequest = ChavePixRequest.newBuilder()
             .setIdentificador("c56dfef4-7901-44fb-84e2-a2cefb157890")
@@ -38,7 +38,7 @@ internal class ToModelTest{
     }
 
     @Test
-    internal fun `deve retornar um IdPix`() {
+    fun `deve retornar um IdPix`() {
 
         val idPixRequest = IdPixRequest.newBuilder()
             .setPixId(1)
@@ -53,7 +53,7 @@ internal class ToModelTest{
     }
 
     @Test
-    internal fun `deve retornar uma Conta` () {
+    fun `deve retornar uma Conta` () {
 
         val dadosDaContaResponse = DadosDaContaResponse(
             TipoConta.CONTA_CORRENTE,
@@ -75,7 +75,7 @@ internal class ToModelTest{
     }
 
     @Test
-    internal fun `deve retornar um BankAccountRequest` () {
+    fun `deve retornar um BankAccountRequest` () {
 
         val conta = Conta(
             TipoConta.CONTA_CORRENTE,
