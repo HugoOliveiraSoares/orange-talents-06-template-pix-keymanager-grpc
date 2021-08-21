@@ -1,6 +1,9 @@
-package br.com.zup.edu.services
+package br.com.zup.edu.endpoint
 
-import br.com.zup.edu.*
+import br.com.zup.edu.ChavePixRequest
+import br.com.zup.edu.KeyManagerGrpcServiceGrpc
+import br.com.zup.edu.TipoChave
+import br.com.zup.edu.TipoConta
 import br.com.zup.edu.chavepix.DadosDaContaResponse
 import br.com.zup.edu.chavepix.InstituicaoResponse
 import br.com.zup.edu.chavepix.TitularResponse
@@ -42,7 +45,7 @@ import javax.inject.Singleton
 @MicronautTest(transactional = false)
 internal class CadastraChaveTest(
     @Inject val repository: ChavePixRepository,
-    @Inject val grpcClient: KeyManagerGrpcServiceGrpc.KeyManagerGrpcServiceBlockingStub,
+    @Inject val grpcClient: KeyManagerGrpcServiceGrpc.KeyManagerGrpcServiceBlockingStub
 ) {
 
     @Inject
@@ -51,7 +54,6 @@ internal class CadastraChaveTest(
     lateinit var bcbClient: BCBClient
 
     lateinit var dadosDaContaResponse: DadosDaContaResponse
-    lateinit var createPixKeyRequest: CreatePixKeyRequest
     lateinit var createPixKeyResponse: CreatePixKeyResponse
 
     @BeforeEach
@@ -64,22 +66,6 @@ internal class CadastraChaveTest(
             "291900",
             TitularResponse(
                 "c56dfef4-7901-44fb-84e2-a2cefb157890",
-                "Rafael M C Ponte",
-                "02467781054"
-            )
-        )
-
-        createPixKeyRequest = CreatePixKeyRequest(
-            KeyType.CPF,
-            "02467781054",
-            BankAccountRequest(
-                "60701190",
-                "0001",
-                "291900",
-                AccountType.CACC
-            ),
-            OwnerRequest(
-                TypePerson.NATURAL_PERSON,
                 "Rafael M C Ponte",
                 "02467781054"
             )
@@ -107,7 +93,7 @@ internal class CadastraChaveTest(
             .thenReturn(HttpResponse.ok(dadosDaContaResponse))
 
         Mockito
-            .`when`(bcbClient.cadastraChavePix(createPixKeyRequest))
+            .`when`(bcbClient.cadastraChavePix(createPixKeyRequest("02467781054", KeyType.CPF)))
             .thenReturn(HttpResponse.created(createPixKeyResponse))
 
     }
@@ -194,6 +180,10 @@ internal class CadastraChaveTest(
 
     @Test
     fun `deve cadastrar uma chave aleatoria`() {
+
+        Mockito
+            .`when`(bcbClient.cadastraChavePix(createPixKeyRequest("", KeyType.RANDOM)))
+            .thenReturn(HttpResponse.created(createPixKeyResponse))
 
         val response = grpcClient.registraChavePix(
             ChavePixRequest.newBuilder()
@@ -290,6 +280,24 @@ internal class CadastraChaveTest(
         assertEquals("UNKNOWN: Erro ao cadastar no BCB", exception.message)
         assertFalse(repository.existsByChave("02467781054"))
 
+    }
+
+    fun createPixKeyRequest(chave: String, keyType: KeyType): CreatePixKeyRequest {
+        return CreatePixKeyRequest(
+            keyType,
+            chave,
+            BankAccountRequest(
+                "60701190",
+                "0001",
+                "291900",
+                AccountType.CACC
+            ),
+            OwnerRequest(
+                TypePerson.NATURAL_PERSON,
+                "Rafael M C Ponte",
+                "02467781054"
+            )
+        )
     }
 
     @Factory
