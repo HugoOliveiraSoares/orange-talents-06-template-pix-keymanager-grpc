@@ -1,11 +1,13 @@
 package br.com.zup.edu.extension
 
 import br.com.zup.edu.ChavePixRequest
+import br.com.zup.edu.ClienteRequest
 import br.com.zup.edu.IdPixRequest
 import br.com.zup.edu.PixRequest
 import br.com.zup.edu.endpoint.dto.IdPix
 import br.com.zup.edu.endpoint.dto.NovaChavePix
 import br.com.zup.edu.endpoint.dto.Chave
+import br.com.zup.edu.endpoint.dto.Identificador
 
 fun ChavePixRequest.toModel(): NovaChavePix {
 
@@ -29,4 +31,10 @@ fun IdPixRequest.toModel(): IdPix {
 fun PixRequest.toModel(): Chave {
 
     return Chave(chave)
+}
+
+fun ClienteRequest.toModel(): Identificador {
+
+    return Identificador(identificador)
+
 }

@@ -5,6 +5,7 @@ import br.com.zup.edu.clients.BCBClient
 import br.com.zup.edu.clients.ContaClient
 import br.com.zup.edu.endpoint.dto.Chave
 import br.com.zup.edu.endpoint.dto.IdPix
+import br.com.zup.edu.endpoint.dto.Identificador
 import br.com.zup.edu.endpoint.dto.NovaChavePix
 import br.com.zup.edu.extension.toModel
 import br.com.zup.edu.model.Conta
@@ -13,6 +14,7 @@ import io.grpc.Status
 import io.grpc.StatusRuntimeException
 import io.grpc.stub.StreamObserver
 import io.micronaut.http.HttpStatus
+import io.micronaut.http.client.exceptions.HttpClientResponseException
 import io.micronaut.validation.Validated
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -74,7 +76,10 @@ class PixEndpoint(
 
     }
 
-    override fun consultaChavePixKeyManager(request: IdPixRequest, responseObserver: StreamObserver<ChavePixDetailResponse>) {
+    override fun consultaChavePixKeyManager(
+        request: IdPixRequest,
+        responseObserver: StreamObserver<ChavePixDetailResponse>
+    ) {
 
         try {
             val consultaDados = consultaDadosKeyManager(request.toModel())
@@ -103,9 +108,9 @@ class PixEndpoint(
             responseObserver.onNext(consultaDados)
             responseObserver.onCompleted()
 
-        }catch (e: StatusRuntimeException){
+        } catch (e: StatusRuntimeException) {
             responseObserver.onError(e)
-        } catch (e: ConstraintViolationException){
+        } catch (e: ConstraintViolationException) {
             responseObserver.onError(
                 Status.INVALID_ARGUMENT
                     .withDescription("Dados invalidos ${e.message}")
@@ -113,6 +118,51 @@ class PixEndpoint(
             )
         }
 
+    }
+
+    override fun listaTodasChaves(request: ClienteRequest, responseObserver: StreamObserver<ChavesResponse>) {
+
+        try {
+            val lista = listaChaves(request.toModel())
+
+            responseObserver.onNext(lista)
+            responseObserver.onCompleted()
+
+        } catch (e: StatusRuntimeException) {
+            responseObserver.onError(e)
+        } catch (e: ConstraintViolationException) {
+            responseObserver.onError(
+                Status.INVALID_ARGUMENT
+                    .withDescription("Dados invalidos ${e.message}")
+                    .asRuntimeException()
+            )
+        }
+    }
+
+    fun listaChaves(@Valid identificador: Identificador): ChavesResponse {
+
+        try {
+            contaClient.buscaCliente(identificador.identificador)
+        } catch (e: HttpClientResponseException) {
+            throw StatusRuntimeException(
+                Status.NOT_FOUND
+                    .withDescription("Cliente não encontrado no sistema do Itau")
+            )
+        }
+
+        val possiveisChaves = chavePixRepository.findByIdentificadorCliente(identificador.identificador)
+        if (possiveisChaves.isEmpty()) {
+            return ChavesResponse.newBuilder().build()
+        }
+
+        val chaves = mutableListOf<ChaveResponse>()
+        possiveisChaves.forEach {
+            chaves.add(it.toChaveResponse())
+        }
+
+        return ChavesResponse.newBuilder()
+            .addAllChaveResponse(chaves)
+            .build()
     }
 
     fun consultaDadosKeyManager(@Valid idPix: IdPix): ChavePixDetailResponse {
@@ -150,10 +200,11 @@ class PixEndpoint(
         val possivelChavePix = chavePixRepository.findByChave(chave.chave)
         // Se não for encontrado na nossa base de dados pesquisa no sistema Pix do BCB
         if (possivelChavePix.isEmpty) {
-            return bcbClient.buscaChavePix(chave.chave).body()?.toChavePixDetailResponse() ?: throw StatusRuntimeException(
-                Status.UNKNOWN
-                    .withDescription("Erro ao buscar no sistema Pix do BCB")
-            )
+            return bcbClient.buscaChavePix(chave.chave).body()?.toChavePixDetailResponse()
+                ?: throw StatusRuntimeException(
+                    Status.UNKNOWN
+                        .withDescription("Erro ao buscar no sistema Pix do BCB")
+                )
         }
 
         val chavePix = possivelChavePix.get()

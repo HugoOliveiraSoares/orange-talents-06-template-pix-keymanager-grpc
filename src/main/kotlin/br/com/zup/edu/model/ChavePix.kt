@@ -1,12 +1,14 @@
 package br.com.zup.edu.model
 
 import br.com.zup.edu.ChavePixDetailResponse
+import br.com.zup.edu.ChaveResponse
 import br.com.zup.edu.TipoChave
 import br.com.zup.edu.TipoConta
 import br.com.zup.edu.clients.request.CreatePixKeyRequest
 import br.com.zup.edu.clients.request.DeletePixKeyRequest
 import br.com.zup.edu.enums.KeyType
 import com.google.protobuf.Timestamp
+import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
 import javax.persistence.*
@@ -46,7 +48,10 @@ class ChavePix(
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val pixId: Long? = null
 
-    fun toRequest(): CreatePixKeyRequest{
+    @NotNull
+    val criadoEm = LocalDateTime.now()
+
+    fun toRequest(): CreatePixKeyRequest {
         return CreatePixKeyRequest(
             KeyType.values()[tipoChave.ordinal],
             chave,
@@ -55,7 +60,7 @@ class ChavePix(
         )
     }
 
-    fun toDeletePixKeyRequest(): DeletePixKeyRequest{
+    fun toDeletePixKeyRequest(): DeletePixKeyRequest {
 
         return DeletePixKeyRequest(
             chave,
@@ -90,6 +95,25 @@ class ChavePix(
             )
             .build()
 
+    }
+
+    fun toChaveResponse(): ChaveResponse {
+
+        val instant: Instant? = criadoEm.atZone(ZoneId.of("UTC")).toInstant()
+
+        return ChaveResponse.newBuilder()
+            .setPixId(pixId!!)
+            .setIdentificador(identificadorCliente)
+            .setTipoChave(tipoChave)
+            .setChave(chave)
+            .setTipoConta(tipoConta)
+            .setCriadoEm(
+                Timestamp.newBuilder()
+                    .setSeconds(instant?.epochSecond ?: 0)
+                    .setNanos(instant?.nano ?: 0)
+                    .build()
+            )
+            .build()
     }
 
 }

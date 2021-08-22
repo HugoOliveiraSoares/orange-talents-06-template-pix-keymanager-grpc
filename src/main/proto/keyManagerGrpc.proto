@@ -16,6 +16,27 @@ service KeyManagerGrpcService {
   rpc consultaChavePixKeyManager (IdPixRequest) returns (ChavePixDetailResponse) {}
 
   rpc consultaChavePix (PixRequest) returns (ChavePixDetailResponse) {}
+
+  rpc listaTodasChaves (ClienteRequest) returns (ChavesResponse) {}
+}
+
+message ChavesResponse {
+
+  repeated ChaveResponse chaveResponse = 1;
+
+}
+
+message ChaveResponse {
+  int64 pixId = 1;
+  string identificador = 2;
+  TipoChave tipoChave = 3;
+  string chave = 4;
+  TipoConta tipoConta = 5;
+  google.protobuf.Timestamp criadoEm = 11;
+}
+
+message ClienteRequest {
+    string identificador = 1;
 }
 
 message PixRequest {
