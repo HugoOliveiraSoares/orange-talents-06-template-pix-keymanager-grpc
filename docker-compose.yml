@@ -1,0 +1,35 @@
+version: '3'
+services:
+    bcb:
+        image: "public.ecr.aws/d8b2x5c9/orange-stack-sat-bcb-pix"
+        ports: 
+            - 8082:8082
+    erp-itau:
+        image: "public.ecr.aws/d8b2x5c9/orange-stack-sat-itau-erp"
+        ports: 
+            - 9091:9091
+    postgres:
+        image: 'postgres:alpine'
+        volumes:
+            - postgres-volume:/var/lib/postgresql/data
+        ports:
+            - 5432:5432
+        environment:
+            POSTGRES_USER: keyManager
+            POSTGRES_PASSWORD: password
+            POSTGRES_DB: key_manager
+            POSTGRES_HOST: postgres
+
+    key-manager-grpc:
+        image: 'hugo/key-manager-grpc'
+        container_name: key-manager-grpc
+        ports:
+            - 50051:50051
+        environment:
+            - DATABASE_URL=jdbc:postgresql://postgres:5432/key_manager
+            - ERP_ITAU_URL=http://erp-itau:9091/api/v1/clientes
+            - BCB_URL=http://bcb:8082/api/v1/pix/keys
+
+
+volumes:
+    postgres-volume:
