@@ -7,6 +7,7 @@ import br.com.zup.edu.TipoConta
 import br.com.zup.edu.clients.request.CreatePixKeyRequest
 import br.com.zup.edu.clients.request.DeletePixKeyRequest
 import br.com.zup.edu.enums.KeyType
+import br.com.zup.edu.validation.ValidUUID
 import com.google.protobuf.Timestamp
 import java.time.Instant
 import java.time.LocalDateTime
@@ -20,6 +21,7 @@ import javax.validation.constraints.Size
 @Entity
 class ChavePix(
 
+    @ValidUUID
     @field:NotEmpty @field:NotBlank
     @Column(nullable = false)
     val identificadorCliente: String,
@@ -29,6 +31,7 @@ class ChavePix(
     @Enumerated(EnumType.STRING)
     val tipoChave: TipoChave,
 
+    @ValidUUID
     @field:Size(max = 77)
     @Column(nullable = false, unique = true)
     var chave: String,
