@@ -219,7 +219,7 @@ internal class RemoveChavePix(
     }
 
     @Test
-    fun `deve retornar UNKNOWN quando der erro no sistema BCB e nao deve remover do banco` () {
+    fun `deve retornar FAILED_PRECONDITION quando der erro no sistema BCB e nao deve remover do banco` () {
 
         Mockito
             .`when`(bcbClient.deletaChavePix(deletePixKeyRequest(), deletePixKeyRequest().key))
@@ -254,8 +254,8 @@ internal class RemoveChavePix(
             )
         }
 
-        assertEquals(Status.UNKNOWN.code, exception.status.code)
-        assertEquals("UNKNOWN: Erro ao deletar no BCB", exception.message)
+        assertEquals(Status.FAILED_PRECONDITION.code, exception.status.code)
+        assertEquals("FAILED_PRECONDITION: Erro ao deletar no BCB", exception.message)
         assertTrue(repository.existsByChave("02467781054"))
 
     }

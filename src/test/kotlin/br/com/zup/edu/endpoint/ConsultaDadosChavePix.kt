@@ -150,7 +150,7 @@ internal class ConsultaDadosChavePixTest(
     }
 
     @Test
-    fun `deve retornar UNKNOWN para erro ao buscar chave no sistema BCB`() {
+    fun `deve retornar FAILED_PRECONDITION para erro ao buscar chave no sistema BCB`() {
 
         val chave = geraChave()
 
@@ -162,8 +162,8 @@ internal class ConsultaDadosChavePixTest(
             grpcClient.consultaChavePix(pixRequest(chave))
         }
 
-        assertEquals(Status.UNKNOWN.code, assertThrows.status.code)
-        assertEquals("UNKNOWN: Erro ao buscar no sistema Pix do BCB", assertThrows.message)
+        assertEquals(Status.FAILED_PRECONDITION.code, assertThrows.status.code)
+        assertEquals("FAILED_PRECONDITION: Erro ao buscar no sistema Pix do BCB", assertThrows.message)
 
     }
 

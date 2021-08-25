@@ -243,7 +243,7 @@ internal class CadastraChaveTest(
     }
 
     @Test
-    fun `deve retornar UNKNOWN quando der erro no sistema BCB e nao deve salvar no banco` () {
+    fun `deve retornar FAILED_PRECONDITION quando der erro no sistema BCB e nao deve salvar no banco` () {
 
         val createPix = CreatePixKeyRequest(
             KeyType.CPF,
@@ -276,8 +276,8 @@ internal class CadastraChaveTest(
             )
         }
 
-        assertEquals(Status.UNKNOWN.code, exception.status.code)
-        assertEquals("UNKNOWN: Erro ao cadastar no BCB", exception.message)
+        assertEquals(Status.FAILED_PRECONDITION.code, exception.status.code)
+        assertEquals("FAILED_PRECONDITION: Erro ao cadastar no BCB", exception.message)
         assertFalse(repository.existsByChave("02467781054"))
 
     }
